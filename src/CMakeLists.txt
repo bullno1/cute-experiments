@@ -1,9 +1,25 @@
 set(SOURCES
 	"main.c"
+	"assets.c"
 
 	"scenes/scratch.c"
+	"scenes/dungeon.c"
+
+	"gen/default_vert_bytecode.h"
+	"gen/default_frag_bytecode.h"
 )
 add_bgame_app(cute-experiments "${SOURCES}")
+
+compile_vertex_shader(
+	${CMAKE_CURRENT_SOURCE_DIR}/glsl/default.vert.glsl
+	default_vert_bytecode
+	${CMAKE_CURRENT_SOURCE_DIR}/gen/default_vert_bytecode.h
+)
+compile_fragment_shader(
+	${CMAKE_CURRENT_SOURCE_DIR}/glsl/default.frag.glsl
+	default_frag_bytecode
+	${CMAKE_CURRENT_SOURCE_DIR}/gen/default_frag_bytecode.h
+)
 
 if (EMSCRIPTEN)
 	target_link_libraries(cute-experiments PRIVATE bgame-emscripten-shell)

@@ -6,6 +6,7 @@
 #include <blog.h>
 #include <cute.h>
 #include <SDL3/SDL_video.h>
+#include "assets.h"
 
 #ifdef __EMSCRIPTEN__
 #	include <emscripten/html5.h>
@@ -80,10 +81,11 @@ init(int argc, const char** argv) {
 	cf_set_fixed_timestep(60);
 	cf_app_set_present_mode(CF_PRESENT_MODE_VSYNC);
 
+	load_assets();
 	cf_app_set_icon("/assets/icon.png");
 
 	if (bgame_current_scene() == NULL) {
-		bgame_push_scene("scratch");
+		bgame_push_scene("dungeon");
 		bgame_scene_update();
 	}
 }
@@ -94,12 +96,14 @@ update(void) {
 		handle_resize();
 	}
 
+	check_assets();
 	bgame_scene_update();
 }
 
 static void
 cleanup(void) {
 	bgame_clear_scene_stack();
+	unload_assets();
 	cf_destroy_app();
 
 	BLOG_DEBUG("--- Allocator stats ---");
@@ -108,6 +112,7 @@ cleanup(void) {
 
 static void
 after_reload(void) {
+	load_assets();
 	bgame_scene_after_reload();
 }
 
