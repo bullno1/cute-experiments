@@ -6,6 +6,7 @@
 
 extern struct CF_Sprite* spr_wall;
 extern struct CF_Sprite* spr_floor;
+extern struct CF_Sprite* spr_enemy;
 extern CF_Shader shd_default;
 
 void

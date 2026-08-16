@@ -42,6 +42,8 @@ SCENE_VAR(dungeon_pos_t, char_pos)
 SCENE_VAR(direction_t, char_dir)
 static bool should_rebuild_dungeon = true;  // Not a scene var so it rebuilds on each reload
 
+SCENE_VAR(dungeon_pos_t, enemy_pos)
+
 SCENE_VAR(CF_DrawList, dungeon_mesh)
 
 static void
@@ -199,6 +201,12 @@ update(void) {
 								cf_draw3d_rotate(cf_quat_from_axis_angle(cf_v3(-1.f, 0.f, 0.f), CF_PI * 0.5f));
 								cf_draw3d_sprite(&sprite, cf_v3(0.f, 0.f, 0.f));
 							}
+
+							BGAME_SCOPE(cf_draw3d_push(), cf_draw3d_pop()) {
+								cf_draw3d_translate(cf_v3(0.f, (float)TILE_SIZE, 0.f));;
+								cf_draw3d_rotate(cf_quat_from_axis_angle(cf_v3(1.f, 0.f, 0.f), CF_PI * 0.5f));
+								cf_draw3d_sprite(&sprite, cf_v3(0.f, 0.f, 0.f));
+							}
 						} break;
 						case DUNGEON_TILE_WALL: {
 							if (get_tile(dungeon, (dungeon_pos_t){ x - 1, y    }) != DUNGEON_TILE_WALL) {
@@ -236,6 +244,15 @@ update(void) {
 	BGAME_SCOPE(cf_draw3d_push_shader(shd_default), cf_draw3d_pop_shader())
 	{
 		cf_draw_list(dungeon_mesh);
+
+		CF_V3 enemy_3d_pos = {
+			.x = enemy_pos.x * TILE_SIZE,
+			.y = 0.5f * TILE_SIZE + cf_sin(CF_SECONDS * 2.5f) * 0.05f,
+			.z = enemy_pos.y * TILE_SIZE,
+		};
+		CF_Sprite enemy_sprite = *spr_enemy;
+		enemy_sprite.scale = cf_v2(TILE_SIZE / 32.f);
+		cf_draw3d_billboard(&enemy_sprite, enemy_3d_pos);
 	}
 
 	// Overlay
@@ -365,17 +382,25 @@ update(void) {
 	}
 
 	// Wall/Floor toggle
+	dungeon_pos_t coord_in_front = {
+		.x = char_pos.x + dir_forward.x,
+		.y = char_pos.y + dir_forward.y,
+	};
+	dungeon_tile_t tile_in_front = get_tile(dungeon, coord_in_front);
+
 	if (cf_key_just_pressed(CF_KEY_SPACE)) {
-		dungeon_pos_t coord_in_front = {
-			.x = char_pos.x + dir_forward.x,
-			.y = char_pos.y + dir_forward.y,
-		};
-		dungeon_tile_t tile_in_front = get_tile(dungeon, coord_in_front);
 		should_rebuild_dungeon = set_tile(
 			dungeon,
 			coord_in_front,
 			tile_in_front == DUNGEON_TILE_WALL ? DUNGEON_TILE_FLOOR : DUNGEON_TILE_WALL
 		);
+	}
+
+	// Move enemy
+	if (cf_key_just_pressed(CF_KEY_Z)) {
+		if (tile_in_front == DUNGEON_TILE_FLOOR) {
+			enemy_pos = coord_in_front;
+		}
 	}
 
 	cf_app_draw_onto_screen(true);

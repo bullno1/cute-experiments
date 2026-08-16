@@ -8,4 +8,5 @@ layout (set = 2, binding = 0) uniform sampler2D u_image;
 
 void main() {
 	result = texture(u_image, smooth_uv(v_uv, v_uv_rect, textureSize(u_image, 0)));
+	if (result.a < 0.5) discard;
 }

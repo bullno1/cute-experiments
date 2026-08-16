@@ -8,6 +8,7 @@ BGAME_VAR(bgame_asset_bundle_t*, predefined_assets) = { 0 };
 
 BGAME_DEFINE_SPRITE(spr_wall) = { .path = "/assets/sprites/wall.png" };
 BGAME_DEFINE_SPRITE(spr_floor) = { .path = "/assets/sprites/floor.png" };
+BGAME_DEFINE_SPRITE(spr_enemy) = { .path = "/assets/sprites/skeleton-mage.png" };
 
 CF_Shader shd_default;
 
