@@ -106,11 +106,30 @@ fixed_update(void* userdata) {
 	// Smooth camera movement
 	float t = 1.f - cf_exp(-INTERPOLATION_SPED * CF_DELTA_TIME_FIXED);
 
+
 	CF_V3 cam_pos_target = {
 		.x = char_pos.x * TILE_SIZE,
 		.y = TILE_SIZE * 0.5f,
 		.z = char_pos.y * TILE_SIZE,
 	};
+	CF_V3 dir_forward = { 0 };
+	switch (char_dir) {
+		case DIR_NORTH:
+			dir_forward.z = -1;
+			break;
+		case DIR_SOUTH:
+			dir_forward.z = 1;
+			break;
+		case DIR_EAST:
+			dir_forward.x = 1;
+			break;
+		case DIR_WEST:
+			dir_forward.x = -1;
+			break;
+	}
+	// Put the camera slightly backward from the center so it can see the tile boundary
+	cam_pos_target = cf_add(cam_pos_target, cf_mul(dir_forward, -0.3f * TILE_SIZE));
+
 	cam_pos = cf_lerp(cam_pos, cam_pos_target, t);
 
 	float angle;
@@ -128,7 +147,11 @@ fixed_update(void* userdata) {
 			angle = CF_PI * 1.5f;
 			break;
 	}
-	CF_Quat cam_rot_target = cf_quat_from_axis_angle(cf_v3(0, -1, 0), angle);
+	// Look slightly down so we can see the seam of the current tile
+	CF_Quat cam_rot_target = cf_mul(
+		cf_quat_from_axis_angle(cf_v3(0, -1, 0), angle),
+		cf_quat_from_axis_angle(cf_v3(-1, 0, 0), 0.02f)
+	);
 	cam_rot = cf_quat_norm(cf_quat_slerp(cam_rot, cam_rot_target, t));
 }
 
