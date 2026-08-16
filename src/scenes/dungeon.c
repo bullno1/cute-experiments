@@ -25,11 +25,18 @@ typedef struct {
 	int y;
 } dungeon_pos_t;
 
+typedef enum {
+	DIR_NORTH,
+	DIR_EAST,
+	DIR_SOUTH,
+	DIR_WEST,
+} direction_t;
+
 SCENE_VAR(CF_V3, cam_pos)
 SCENE_VAR(dungeon_t*, dungeon)
 
 SCENE_VAR(dungeon_pos_t, char_pos)
-SCENE_VAR(float, char_look)
+SCENE_VAR(direction_t, char_dir)
 static bool should_rebuild_dungeon = true;  // Not a scene var so it rebuilds on each reload
 
 SCENE_VAR(CF_DrawList, dungeon_mesh)
@@ -135,12 +142,92 @@ update(void) {
 		should_rebuild_dungeon = false;
 	}
 
-	BGAME_SCOPE(cf_draw3d_push_projection(cf_perspective(CF_PI * 0.6f, (float)w / (float)h, 0.1f, 100.f)), cf_draw3d_pop_projection())
-	BGAME_SCOPE(cf_draw3d_push_view(cf_look_at(cam_pos, cf_v3(0, TILE_SIZE * 0.5f, -1), cf_v3(0, 1, 0))), cf_draw3d_pop_view())
+	CF_V3 cam_look_dir;
+
+	switch (char_dir) {
+		case DIR_NORTH:
+			cam_look_dir = cf_v3(0, 0, -1);
+			break;
+		case DIR_SOUTH:
+			cam_look_dir = cf_v3(0, 0, 1);
+			break;
+		case DIR_EAST:
+			cam_look_dir = cf_v3(1, 0, 0);
+			break;
+		case DIR_WEST:
+			cam_look_dir = cf_v3(-1, 0, 0);
+			break;
+	}
+	cam_look_dir.y = -0.05f;
+
+	cam_pos.x = char_pos.x * TILE_SIZE;
+	cam_pos.z = char_pos.y * TILE_SIZE;
+
+	BGAME_SCOPE(cf_draw3d_push_projection(cf_perspective(CF_PI * 0.5f, (float)w / (float)h, 0.1f, 100.f)), cf_draw3d_pop_projection())
+	BGAME_SCOPE(cf_draw3d_push_view(cf_look_at(cam_pos, cf_add(cam_pos, cam_look_dir), cf_v3(0, 1, 0))), cf_draw3d_pop_view())
 	BGAME_SCOPE(cf_draw3d_push_shader(shd_default), cf_draw3d_pop_shader())
 	{
 		cf_draw_list(dungeon_mesh);
 	}
+
+	dungeon_pos_t dir_forward = { 0 };
+	dungeon_pos_t dir_right = { 0 };
+	switch (char_dir) {
+		case DIR_NORTH:
+			dir_forward.y = -1;
+			dir_right.x = 1;
+			break;
+		case DIR_SOUTH:
+			dir_forward.y = 1;
+			dir_right.x = -1;
+			break;
+		case DIR_EAST:
+			dir_forward.x = 1;
+			dir_right.y = 1;
+			break;
+		case DIR_WEST:
+			dir_forward.x = -1;
+			dir_right.y = -1;
+			break;
+	}
+
+	dungeon_pos_t move_dir = { 0 };
+
+	if (cf_key_just_pressed(CF_KEY_W)) {
+		move_dir = dir_forward;
+	}
+
+	if (cf_key_just_pressed(CF_KEY_S)) {
+		move_dir = (dungeon_pos_t){
+			.x = -dir_forward.x,
+			.y = -dir_forward.y,
+		};
+	}
+
+	if (cf_key_just_pressed(CF_KEY_A)) {
+		move_dir = (dungeon_pos_t){
+			.x = -dir_right.x,
+			.y = -dir_right.y,
+		};
+	}
+
+	if (cf_key_just_pressed(CF_KEY_D)) {
+		move_dir = dir_right;
+	}
+
+	if (cf_key_just_pressed(CF_KEY_Q)) {
+		char_dir = (char_dir - 1 + 4) % 4;
+	}
+
+	if (cf_key_just_pressed(CF_KEY_E)) {
+		char_dir = (char_dir + 1) % 4;
+	}
+
+	char_pos.x += move_dir.x;
+	char_pos.y += move_dir.y;
+
+	char_pos.x = cf_clamp(char_pos.x, 0, DUNGEON_WIDTH);
+	char_pos.y = cf_clamp(char_pos.y, 0, DUNGEON_HEIGHT);
 
 	cf_app_draw_onto_screen(true);
 }
