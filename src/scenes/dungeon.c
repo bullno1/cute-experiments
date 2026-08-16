@@ -3,10 +3,12 @@
 #define BGAME_SCENE_NAME dungeon
 #include <bgame/utils.h>
 
-#define DUNGEON_WIDTH  64
-#define DUNGEON_HEIGHT 64
+#define DUNGEON_WIDTH  16
+#define DUNGEON_HEIGHT 16
 
 #define TILE_SIZE 3.f
+
+#define INTERPOLATION_SPED 15.f
 
 typedef enum {
 	DUNGEON_TILE_FLOOR = 0,
@@ -68,10 +70,6 @@ cleanup(void) {
 }
 
 static void
-fixed_update(void* userdata) {
-}
-
-static void
 draw_wall(float rotate) {
 	CF_Sprite sprite = *spr_wall;
 	sprite.scale = cf_v2(TILE_SIZE / 32.f);
@@ -99,6 +97,18 @@ draw_west_wall(void) {
 static void
 draw_east_wall(void) {
 	draw_wall(CF_PI * -0.5f);
+}
+
+static void
+fixed_update(void* userdata) {
+	CF_V3 cam_target = {
+		.x = char_pos.x * TILE_SIZE,
+		.y = TILE_SIZE * 0.5f,
+		.z = char_pos.y * TILE_SIZE,
+	};
+
+	CF_V3 cam_delta = cf_mul(cf_sub(cam_target, cam_pos), 1.f - cf_exp(-INTERPOLATION_SPED * CF_DELTA_TIME_FIXED));
+	cam_pos = cf_add(cam_pos, cam_delta);
 }
 
 static void
@@ -158,10 +168,7 @@ update(void) {
 			cam_look_dir = cf_v3(-1, 0, 0);
 			break;
 	}
-	cam_look_dir.y = -0.05f;
-
-	cam_pos.x = char_pos.x * TILE_SIZE;
-	cam_pos.z = char_pos.y * TILE_SIZE;
+	cam_look_dir.y = -0.04f;
 
 	BGAME_SCOPE(cf_draw3d_push_projection(cf_perspective(CF_PI * 0.5f, (float)w / (float)h, 0.1f, 100.f)), cf_draw3d_pop_projection())
 	BGAME_SCOPE(cf_draw3d_push_view(cf_look_at(cam_pos, cf_add(cam_pos, cam_look_dir), cf_v3(0, 1, 0))), cf_draw3d_pop_view())
@@ -226,8 +233,8 @@ update(void) {
 	char_pos.x += move_dir.x;
 	char_pos.y += move_dir.y;
 
-	char_pos.x = cf_clamp(char_pos.x, 0, DUNGEON_WIDTH);
-	char_pos.y = cf_clamp(char_pos.y, 0, DUNGEON_HEIGHT);
+	char_pos.x = cf_clamp(char_pos.x, 0, DUNGEON_WIDTH - 1);
+	char_pos.y = cf_clamp(char_pos.y, 0, DUNGEON_HEIGHT - 1);
 
 	cf_app_draw_onto_screen(true);
 }
