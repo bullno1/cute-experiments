@@ -240,6 +240,66 @@ update(void) {
 
 	// Overlay
 	if (cf_key_down(CF_KEY_LSHIFT)) {
+		BGAME_SCOPE(cf_draw_push_color(cf_make_color_rgba(255, 255, 255, 128)), cf_draw_pop_color())
+		{
+			float margin = 10;
+			float available_height = (float)h - margin * 2.f;
+			float cell_size = available_height / (float)dungeon->height;
+
+			float start_x = -cell_size * 0.5f * (float)dungeon->width;
+			float start_y = h * 0.5f - margin;
+
+			for (int y = 0; y < dungeon->height; ++y) {
+				for (int x = 0; x < dungeon->width; ++x) {
+					CF_Aabb cell_box = cf_make_aabb_from_top_left(
+						cf_v2(
+							start_x + x * cell_size,
+							start_y - y * cell_size
+						),
+						cell_size,
+						cell_size
+					);
+
+					switch (get_tile(dungeon, (dungeon_pos_t){ x, y })) {
+						case DUNGEON_TILE_WALL:
+							cf_draw_box_fill(cell_box, 0.1f);
+							break;
+						case DUNGEON_TILE_FLOOR:
+							cf_draw_box(cell_box, 0.1f, 0.1f);
+							break;
+					}
+				}
+			}
+
+			CF_V2 arrow[] = {
+				{  0.f             ,  cell_size * 0.35f },
+				{ -cell_size * 0.3f, -cell_size * 0.3f },
+				{  cell_size * 0.3f, -cell_size * 0.3f },
+			};
+
+			BGAME_SCOPE(cf_draw_push(), cf_draw_pop())
+			{
+				cf_draw_translate(
+					start_x + cell_size * char_pos.x + cell_size * 0.5f,
+					start_y - cell_size * char_pos.y - cell_size * 0.5f
+				);
+				switch (char_dir) {
+					case DIR_NORTH:
+						cf_draw_rotate(CF_PI * 0.0f);
+						break;
+					case DIR_EAST:
+						cf_draw_rotate(CF_PI * 0.5f);
+						break;
+					case DIR_SOUTH:
+						cf_draw_rotate(CF_PI * 1.0f);
+						break;
+					case DIR_WEST:
+						cf_draw_rotate(CF_PI * 1.5f);
+						break;
+				}
+				cf_draw_polygon_fill(arrow, CF_ARRAY_SIZE(arrow), 0.1f);
+			}
+		}
 	}
 
 	// Camera control
