@@ -46,6 +46,28 @@ SCENE_VAR(dungeon_pos_t, enemy_pos)
 
 SCENE_VAR(CF_DrawList, dungeon_mesh)
 
+static CF_Sprite** floor_set[] = {
+	&spr_floor_2,
+	&spr_floor_3,
+	&spr_floor_4,
+	&spr_floor_5,
+	&spr_floor_6,
+	&spr_floor_7,
+};
+
+static uint64_t
+fnv1a(const void *data, size_t len, uint64_t seed) {
+	const uint8_t *p = (const uint8_t *)data;
+	uint64_t hash = seed;
+
+	for (size_t i = 0; i < len; ++i) {
+		hash ^= p[i];
+		hash *= UINT64_C(1099511628211);
+	}
+
+	return hash;
+}
+
 static void
 init(void) {
 	cf_clear_color(0.5f, 0.5f, 0.5f, 0.5f);
@@ -193,19 +215,24 @@ update(void) {
 				BGAME_SCOPE(cf_draw3d_push(), cf_draw3d_pop()) {
 					cf_draw3d_translate(cf_v3(x * TILE_SIZE, 0, y * TILE_SIZE));
 
-					switch (get_tile(dungeon, (dungeon_pos_t){ x, y })) {
+					dungeon_pos_t pos = { x, y };
+					switch (get_tile(dungeon, pos)) {
 						case DUNGEON_TILE_FLOOR: {
-							CF_Sprite sprite = *spr_floor;
-							sprite.scale = cf_v2(TILE_SIZE / (float)sprite.w);
+							// Pick sprite based on coordinate so it's random but still consistent
+							CF_Sprite floor_sprite = **floor_set[fnv1a(&pos, sizeof(pos), 0) % CF_ARRAY_SIZE(floor_set)];
+							floor_sprite.scale = cf_v2(TILE_SIZE / (float)floor_sprite.w);
+
 							BGAME_SCOPE(cf_draw3d_push(), cf_draw3d_pop()) {
 								cf_draw3d_rotate(cf_quat_from_axis_angle(cf_v3(-1.f, 0.f, 0.f), CF_PI * 0.5f));
-								cf_draw3d_sprite(&sprite, cf_v3(0.f, 0.f, 0.f));
+								cf_draw3d_sprite(&floor_sprite, cf_v3(0.f, 0.f, 0.f));
 							}
 
+							CF_Sprite ceiling_sprite = **floor_set[fnv1a(&pos, sizeof(pos), 1) % CF_ARRAY_SIZE(floor_set)];
+							ceiling_sprite.scale = cf_v2(TILE_SIZE / (float)ceiling_sprite.w);
 							BGAME_SCOPE(cf_draw3d_push(), cf_draw3d_pop()) {
 								cf_draw3d_translate(cf_v3(0.f, (float)TILE_SIZE, 0.f));;
 								cf_draw3d_rotate(cf_quat_from_axis_angle(cf_v3(1.f, 0.f, 0.f), CF_PI * 0.5f));
-								cf_draw3d_sprite(&sprite, cf_v3(0.f, 0.f, 0.f));
+								cf_draw3d_sprite(&ceiling_sprite, cf_v3(0.f, 0.f, 0.f));
 							}
 						} break;
 						case DUNGEON_TILE_WALL: {

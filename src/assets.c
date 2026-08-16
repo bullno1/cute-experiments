@@ -7,8 +7,15 @@
 BGAME_VAR(bgame_asset_bundle_t*, predefined_assets) = { 0 };
 
 BGAME_DEFINE_SPRITE(spr_wall) = { .path = "/assets/sprites/wall.png" };
-BGAME_DEFINE_SPRITE(spr_floor) = { .path = "/assets/sprites/floor.png" };
 BGAME_DEFINE_SPRITE(spr_enemy) = { .path = "/assets/sprites/skeleton-mage.png" };
+
+BGAME_DEFINE_SPRITE(spr_floor_1) = { .path = "/assets/sprites/floor_1.png" };
+BGAME_DEFINE_SPRITE(spr_floor_2) = { .path = "/assets/sprites/floor_2.png" };
+BGAME_DEFINE_SPRITE(spr_floor_3) = { .path = "/assets/sprites/floor_3.png" };
+BGAME_DEFINE_SPRITE(spr_floor_4) = { .path = "/assets/sprites/floor_4.png" };
+BGAME_DEFINE_SPRITE(spr_floor_5) = { .path = "/assets/sprites/floor_5.png" };
+BGAME_DEFINE_SPRITE(spr_floor_6) = { .path = "/assets/sprites/floor_6.png" };
+BGAME_DEFINE_SPRITE(spr_floor_7) = { .path = "/assets/sprites/floor_7.png" };
 
 CF_Shader shd_default;
 

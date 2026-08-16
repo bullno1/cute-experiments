@@ -5,8 +5,15 @@
 #include <cute_graphics.h>
 
 extern struct CF_Sprite* spr_wall;
-extern struct CF_Sprite* spr_floor;
 extern struct CF_Sprite* spr_enemy;
+extern struct CF_Sprite* spr_floor_1;
+extern struct CF_Sprite* spr_floor_2;
+extern struct CF_Sprite* spr_floor_3;
+extern struct CF_Sprite* spr_floor_4;
+extern struct CF_Sprite* spr_floor_5;
+extern struct CF_Sprite* spr_floor_6;
+extern struct CF_Sprite* spr_floor_7;
+extern struct CF_Sprite* spr_floor_8;
 extern CF_Shader shd_default;
 
 void
