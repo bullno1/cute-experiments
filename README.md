@@ -25,7 +25,7 @@ cmd/web/run
 # Demos
 ## dungeon
 
-![dungeon](dungeon.png)
+![dungeon](screenshots/dungeon.png)
 
 It's mostly to play around with the new 3D API and test the idea that any 2D pixelated tileset can be used to build a 3D old school dungeon.
 
