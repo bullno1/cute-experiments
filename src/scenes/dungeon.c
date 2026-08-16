@@ -274,12 +274,25 @@ update(void) {
 
 		CF_V3 enemy_3d_pos = {
 			.x = enemy_pos.x * TILE_SIZE,
-			.y = 0.5f * TILE_SIZE + cf_sin(CF_SECONDS * 2.5f) * 0.05f,
+			.y = 0.5f * TILE_SIZE + 0.05 + cf_sin(CF_SECONDS * 2.5f) * 0.02f,
 			.z = enemy_pos.y * TILE_SIZE,
 		};
 		CF_Sprite enemy_sprite = *spr_enemy;
 		enemy_sprite.scale = cf_v2(TILE_SIZE / 32.f);
 		cf_draw3d_billboard(&enemy_sprite, enemy_3d_pos);
+
+		// Shadow to make the position clearer
+		BGAME_SCOPE(cf_draw3d_push_color(cf_make_color_rgba(0, 0, 0, 150)), cf_draw3d_pop_color()) {
+			cf_draw3d_circle_fill(
+				cf_v3(
+					enemy_pos.x * TILE_SIZE,
+					0.1f,  // Slightly above the floor
+					enemy_pos.y * TILE_SIZE
+				),
+				cf_v3(0, 1, 0),
+				TILE_SIZE * 0.3
+			);
+		}
 	}
 
 	// Overlay
