@@ -133,13 +133,23 @@ fixed_update(void* userdata) {
 }
 
 static dungeon_tile_t
-get_tile(dungeon_t* dgn, int x, int y) {
+get_tile(dungeon_t* dgn, dungeon_pos_t pos) {
 	// Outer wall
-	if (x < 0 || x >= dgn->width || y < 0 || y >= dgn->height) {
+	if (pos.x < 0 || pos.x >= dgn->width || pos.y < 0 || pos.y >= dgn->height) {
 		return DUNGEON_TILE_WALL;
 	}
 
-	return dgn->tiles[x + y * dgn->width];
+	return dgn->tiles[pos.x + pos.y * dgn->width];
+}
+
+static bool
+set_tile(dungeon_t* dgn, dungeon_pos_t pos, dungeon_tile_t tile) {
+	if (pos.x < 0 || pos.x >= dgn->width || pos.y < 0 || pos.y >= dgn->height) {
+		return false;
+	}
+
+	dgn->tiles[pos.x + pos.y * dgn->width] = tile;
+	return true;
 }
 
 static void
@@ -158,7 +168,7 @@ update(void) {
 				BGAME_SCOPE(cf_draw3d_push(), cf_draw3d_pop()) {
 					cf_draw3d_translate(cf_v3(x * TILE_SIZE, 0, y * TILE_SIZE));
 
-					switch (get_tile(dungeon, x, y)) {
+					switch (get_tile(dungeon, (dungeon_pos_t){ x, y })) {
 						case DUNGEON_TILE_FLOOR: {
 							CF_Sprite sprite = *spr_floor;
 							sprite.scale = cf_v2(TILE_SIZE / (float)sprite.w);
@@ -168,19 +178,19 @@ update(void) {
 							}
 						} break;
 						case DUNGEON_TILE_WALL: {
-							if (get_tile(dungeon, x - 1, y    ) != DUNGEON_TILE_WALL) {
+							if (get_tile(dungeon, (dungeon_pos_t){ x - 1, y    }) != DUNGEON_TILE_WALL) {
 								draw_west_wall();
 							}
 
-							if (get_tile(dungeon, x + 1, y    ) != DUNGEON_TILE_WALL) {
+							if (get_tile(dungeon, (dungeon_pos_t){ x + 1, y    }) != DUNGEON_TILE_WALL) {
 								draw_east_wall();
 							}
 
-							if (get_tile(dungeon, x    , y + 1) != DUNGEON_TILE_WALL) {
+							if (get_tile(dungeon, (dungeon_pos_t){ x    , y + 1 }) != DUNGEON_TILE_WALL) {
 								draw_south_wall();
 							}
 
-							if (get_tile(dungeon, x    , y - 1) != DUNGEON_TILE_WALL) {
+							if (get_tile(dungeon, (dungeon_pos_t){ x    , y - 1 }) != DUNGEON_TILE_WALL) {
 								draw_north_wall();
 							}
 						} break;
@@ -195,7 +205,10 @@ update(void) {
 	}
 
 	CF_M4x4 cam_transform = cf_m4_from_trs(cam_pos, cam_rot, cf_v3(1, 1, 1));
-	BGAME_SCOPE(cf_draw3d_push_projection(cf_perspective(CF_PI * 0.5f, (float)w / (float)h, 0.1f, 100.f)), cf_draw3d_pop_projection())
+	float aspect = (float)w / (float)h;
+	float hfov   = 1.6581f;                      /* 95 degrees */
+	float vfov   = 2.0f * atanf(tanf(hfov * 0.5f) / aspect);
+	BGAME_SCOPE(cf_draw3d_push_projection(cf_perspective(vfov, aspect, 0.1f, 100.f)), cf_draw3d_pop_projection())
 	BGAME_SCOPE(cf_draw3d_push_view(cf_m4_invert(cam_transform)), cf_draw3d_pop_view())
 	BGAME_SCOPE(cf_draw3d_push_shader(shd_default), cf_draw3d_pop_shader())
 	{
@@ -264,8 +277,22 @@ update(void) {
 		.x = char_pos.x + move_dir.x,
 		.y = char_pos.y + move_dir.y,
 	};
-	if (get_tile(dungeon, target_pos.x, target_pos.y) == DUNGEON_TILE_FLOOR) {
+	if (get_tile(dungeon, target_pos) == DUNGEON_TILE_FLOOR) {
 		char_pos = target_pos;
+	}
+
+	// Wall/Floor toggle
+	if (cf_key_just_pressed(CF_KEY_SPACE)) {
+		dungeon_pos_t coord_in_front = {
+			.x = char_pos.x + dir_forward.x,
+			.y = char_pos.y + dir_forward.y,
+		};
+		dungeon_tile_t tile_in_front = get_tile(dungeon, coord_in_front);
+		should_rebuild_dungeon = set_tile(
+			dungeon,
+			coord_in_front,
+			tile_in_front == DUNGEON_TILE_WALL ? DUNGEON_TILE_FLOOR : DUNGEON_TILE_WALL
+		);
 	}
 
 	cf_app_draw_onto_screen(true);
