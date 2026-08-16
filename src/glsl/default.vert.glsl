@@ -19,6 +19,6 @@ void main() {
 	vec3 world_pos = vec3(dot(in_model0, p), dot(in_model1, p), dot(in_model2, p));
 	gl_Position = u_view_projection * vec4(world_pos, 1.0);
 
-	v_uv = in_uv;
+	v_uv = mix(in_uv_rect.xy, in_uv_rect.zw, in_uv);
 	v_uv_rect = in_uv_rect;
 }
