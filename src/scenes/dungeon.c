@@ -35,6 +35,7 @@ typedef enum {
 } direction_t;
 
 SCENE_VAR(CF_V3, cam_pos)
+SCENE_VAR(CF_Quat, cam_rot)
 SCENE_VAR(dungeon_t*, dungeon)
 
 SCENE_VAR(dungeon_pos_t, char_pos)
@@ -58,6 +59,7 @@ init(void) {
 		}
 
 		dungeon_mesh = cf_make_draw_list();
+		cam_rot = cf_quat_identity();
 	}
 
 	cam_pos.y = TILE_SIZE * 0.5f;
@@ -101,14 +103,33 @@ draw_east_wall(void) {
 
 static void
 fixed_update(void* userdata) {
-	CF_V3 cam_target = {
+	// Smooth camera movement
+	float t = 1.f - cf_exp(-INTERPOLATION_SPED * CF_DELTA_TIME_FIXED);
+
+	CF_V3 cam_pos_target = {
 		.x = char_pos.x * TILE_SIZE,
 		.y = TILE_SIZE * 0.5f,
 		.z = char_pos.y * TILE_SIZE,
 	};
+	cam_pos = cf_lerp(cam_pos, cam_pos_target, t);
 
-	CF_V3 cam_delta = cf_mul(cf_sub(cam_target, cam_pos), 1.f - cf_exp(-INTERPOLATION_SPED * CF_DELTA_TIME_FIXED));
-	cam_pos = cf_add(cam_pos, cam_delta);
+	float angle;
+	switch (char_dir) {
+		case DIR_NORTH:
+			angle = CF_PI * 0.f;
+			break;
+		case DIR_SOUTH:
+			angle = CF_PI * 1.f;
+			break;
+		case DIR_EAST:
+			angle = CF_PI * 0.5f;
+			break;
+		case DIR_WEST:
+			angle = CF_PI * 1.5f;
+			break;
+	}
+	CF_Quat cam_rot_target = cf_quat_from_axis_angle(cf_v3(0, -1, 0), angle);
+	cam_rot = cf_quat_norm(cf_quat_slerp(cam_rot, cam_rot_target, t));
 }
 
 static void
@@ -152,31 +173,15 @@ update(void) {
 		should_rebuild_dungeon = false;
 	}
 
-	CF_V3 cam_look_dir;
-
-	switch (char_dir) {
-		case DIR_NORTH:
-			cam_look_dir = cf_v3(0, 0, -1);
-			break;
-		case DIR_SOUTH:
-			cam_look_dir = cf_v3(0, 0, 1);
-			break;
-		case DIR_EAST:
-			cam_look_dir = cf_v3(1, 0, 0);
-			break;
-		case DIR_WEST:
-			cam_look_dir = cf_v3(-1, 0, 0);
-			break;
-	}
-	cam_look_dir.y = -0.04f;
-
+	CF_M4x4 cam_transform = cf_m4_from_trs(cam_pos, cam_rot, cf_v3(1, 1, 1));
 	BGAME_SCOPE(cf_draw3d_push_projection(cf_perspective(CF_PI * 0.5f, (float)w / (float)h, 0.1f, 100.f)), cf_draw3d_pop_projection())
-	BGAME_SCOPE(cf_draw3d_push_view(cf_look_at(cam_pos, cf_add(cam_pos, cam_look_dir), cf_v3(0, 1, 0))), cf_draw3d_pop_view())
+	BGAME_SCOPE(cf_draw3d_push_view(cf_m4_invert(cam_transform)), cf_draw3d_pop_view())
 	BGAME_SCOPE(cf_draw3d_push_shader(shd_default), cf_draw3d_pop_shader())
 	{
 		cf_draw_list(dungeon_mesh);
 	}
 
+	// Camera control
 	dungeon_pos_t dir_forward = { 0 };
 	dungeon_pos_t dir_right = { 0 };
 	switch (char_dir) {
