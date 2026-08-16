@@ -1,12 +1,7 @@
-#include <bgame/scene.h>
-#include <bgame/allocator/tracked.h>
-#include <bgame/utils.h>
 #include <cute.h>
 #include "../assets.h"
-
-#define SCENE_NAME dungeon
-#define SCENE_VAR(TYPE, NAME) BGAME_PRIVATE_VAR(SCENE_NAME, TYPE, NAME)
-BGAME_DECLARE_SCENE_ALLOCATOR(SCENE_NAME)
+#define BGAME_SCENE_NAME dungeon
+#include <bgame/utils.h>
 
 #define DUNGEON_WIDTH  64
 #define DUNGEON_HEIGHT 64
@@ -150,7 +145,7 @@ update(void) {
 	cf_app_draw_onto_screen(true);
 }
 
-BGAME_SCENE(SCENE_NAME) = {
+SCENE {
 	.init = init,
 	.update = update,
 	.cleanup = cleanup,
