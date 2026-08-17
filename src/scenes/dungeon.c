@@ -286,7 +286,7 @@ update(void) {
 			cf_draw3d_circle_fill(
 				cf_v3(
 					enemy_pos.x * TILE_SIZE,
-					0.1f,  // Slightly above the floor
+					0.01f,  // Slightly above the floor
 					enemy_pos.y * TILE_SIZE
 				),
 				cf_v3(0, 1, 0),
