@@ -9,6 +9,7 @@ layout (location = 15) in vec4 in_mesh_attributes; // cf_draw3d_push_mesh_attrib
 
 layout (location = 0) out vec2 v_uv;
 layout (location = 1) flat out vec4 v_uv_rect;
+layout (location = 2) out float v_depth;
 
 layout (set = 1, binding = 0) uniform uniform_block {
 	mat4 u_view_projection;
@@ -21,4 +22,5 @@ void main() {
 
 	v_uv = mix(in_uv_rect.xy, in_uv_rect.zw, in_uv);
 	v_uv_rect = in_uv_rect;
+	v_depth = gl_Position.w;
 }
