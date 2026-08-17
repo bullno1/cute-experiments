@@ -71,6 +71,8 @@ fnv1a(const void *data, size_t len, uint64_t seed) {
 static void
 init(void) {
 	cf_clear_color(0.5f, 0.5f, 0.5f, 0.5f);
+	cf_draw3d_mips(4);
+	cf_draw3d_anisotropy(4);
 
 	if (bgame_current_scene_state() == BGAME_SCENE_INITIALIZING) {
 		dungeon = bgame_malloc(sizeof(dungeon_t) + sizeof(dungeon_tile_t) * DUNGEON_WIDTH * DUNGEON_HEIGHT, scene_allocator);
