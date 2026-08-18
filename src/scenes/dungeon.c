@@ -1,5 +1,6 @@
 #include <cute.h>
 #include "../assets.h"
+#include "../common.h"
 #define BGAME_SCENE_NAME dungeon
 #include <bgame/utils.h>
 
@@ -86,6 +87,7 @@ init(void) {
 
 		dungeon_mesh = cf_make_draw_list();
 		cam_rot = cf_quat_identity();
+		should_rebuild_dungeon = true;
 	}
 
 	cam_pos.y = TILE_SIZE * 0.5f;
@@ -204,6 +206,8 @@ set_tile(dungeon_t* dgn, dungeon_pos_t pos, dungeon_tile_t tile) {
 static void
 update(void) {
 	cf_app_update(fixed_update);
+
+	common();
 
 	int w, h;
 	cf_app_get_size(&w, &h);

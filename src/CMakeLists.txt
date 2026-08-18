@@ -1,6 +1,7 @@
 set(SOURCES
 	"main.c"
 	"assets.c"
+	"common.c"
 
 	"scenes/scratch.c"
 	"scenes/dungeon.c"

@@ -75,6 +75,8 @@ init(int argc, const char** argv) {
 
 		cf_app_init_imgui();
 
+		bgame_push_scene("dungeon");
+
 		app_created = true;
 	}
 
@@ -83,11 +85,6 @@ init(int argc, const char** argv) {
 
 	load_assets();
 	cf_app_set_icon("/assets/icon.png");
-
-	if (bgame_current_scene() == NULL) {
-		bgame_push_scene("dungeon");
-		bgame_scene_update();
-	}
 }
 
 static void
