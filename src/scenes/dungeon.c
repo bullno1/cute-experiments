@@ -87,7 +87,15 @@ init(void) {
 
 		dungeon_mesh = cf_make_draw_list();
 		cam_rot = cf_quat_identity();
+
 		should_rebuild_dungeon = true;
+		char_pos = (dungeon_pos_t){
+			.x = dungeon->width / 2,
+			.y = dungeon->height / 2,
+		};
+		char_dir = DIR_NORTH;
+		enemy_pos = char_pos;
+		enemy_pos.y -= 2;
 	}
 
 	cam_pos.y = TILE_SIZE * 0.5f;
