@@ -40,21 +40,21 @@ init(void) {
 		BLOG_ERROR("%s", grain_get_last_error(grain));
 	}
 
-	grain_emitter_t* age_init = grain_define_emitter(
+	grain_emitter_t* lifetime_init = grain_define_emitter(
 		grain,
-		"Module(Age)\n"
+		"Module(Lifetime)\n"
 		"Requires(\n"
-		"	float age;\n"
+		"	float lifetime;\n"
 		")\n"
 		"Params(\n"
-		"	float min_age;\n"
-		"	float max_age;\n"
+		"	float min_lifetime;\n"
+		"	float max_lifetime;\n"
 		")\n"
 		"void process(out Particle particle, ModuleParams params, Ctx ctx) {\n"
-		"	particle.age = mix(params.min_age, params.max_age, rand());\n"
+		"	particle.lifetime = mix(params.min_lifetime, params.max_lifetime, rand());\n"
 		"}"
 	);
-	if (age_init == NULL) {
+	if (lifetime_init == NULL) {
 		BLOG_ERROR("%s", grain_get_last_error(grain));
 	}
 
@@ -62,13 +62,12 @@ init(void) {
 		grain,
 		"Module(Age)\n"
 		"Requires(\n"
-		"	float age;\n"
+		"	float lifetime;\n"
 		")\n"
 		"Params(\n"
 		")\n"
 		"void process(inout Particle particle, ModuleParams params, Ctx ctx) {\n"
-		"	particle.age -= ctx.dt;\n"
-		"	if (particle.age <= 0.0) { destroy(); }\n"
+		"	particle.lifetime -= ctx.dt;\n"
 		"}"
 	);
 	if (age_affector == NULL) {
@@ -105,7 +104,7 @@ init(void) {
 		(grain_archetype_spec_t){
 			.emitters = (grain_emitter_t*[]){
 				point_emitter,
-				age_init,
+				lifetime_init,
 			},
 			.num_emitters = 2,
 
