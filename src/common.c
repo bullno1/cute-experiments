@@ -34,6 +34,10 @@ common(void) {
 			if (ImGui_ComboChar("Scene", &scene_id, scene_names, num_scenes)) {
 				bgame_switch_scene(scene_names[scene_id]);
 			}
+
+			if (ImGui_Button("Reload")) {
+				bgame_reload_scene();
+			}
 		}
 		ImGui_End();
 	}

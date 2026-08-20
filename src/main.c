@@ -75,7 +75,7 @@ init(int argc, const char** argv) {
 
 		cf_app_init_imgui();
 
-		bgame_push_scene("dungeon");
+		bgame_push_scene("particle");
 
 		app_created = true;
 	}

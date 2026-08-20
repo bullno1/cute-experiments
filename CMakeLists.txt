@@ -22,4 +22,5 @@ add_subdirectory(deps)
 # Then everything else to avoid leaking into deps
 
 include("deps/bgame/bgame.cmake")
+add_subdirectory(libs/grain)
 add_subdirectory(src)
