@@ -31,7 +31,7 @@ init(void) {
 		"	float min_angle;\n"
 		"	float max_angle;\n"
 		")\n"
-		"void process(out ParticleAttrs particle, ModuleParams params, Ctx ctx) {\n"
+		"void process(inout ParticleAttrs particle, ModuleParams params, Ctx ctx) {\n"
 		"	particle.position = params.position;\n"
 		"	float speed = mix(params.min_speed, params.max_speed, rand());\n"
 		"	float angle = mix(params.min_angle, params.max_angle, rand());\n"
@@ -52,7 +52,7 @@ init(void) {
 		"	float min_lifetime;\n"
 		"	float max_lifetime;\n"
 		")\n"
-		"void process(out ParticleAttrs particle, ModuleParams params, Ctx ctx) {\n"
+		"void process(inout ParticleAttrs particle, ModuleParams params, Ctx ctx) {\n"
 		"	particle.lifetime = mix(params.min_lifetime, params.max_lifetime, rand());\n"
 		"}"
 	);
@@ -167,8 +167,12 @@ init(void) {
 		pool = grain_create_pool(grain, (grain_pool_opts_t){
 			.archetype = archetype,
 			.max_systems = 16,
-			.max_particles_per_system = 4096
+			.max_emission_rate = 200.f,
+			.lifetime_budget = 20.f,  // must cover max_lifetime below
 		});
+		if (pool == NULL) {
+			BLOG_ERROR("%s", grain_get_last_error(grain));
+		}
 	}
 
 	if (psystem == NULL) {
@@ -186,18 +190,18 @@ static void
 fixed_update(void* userdata) {
 	grain_begin_update(grain);
 
-	grain_set_emission_rate(psystem, 10.f);
+	grain_set_emission_rate(psystem, 100.f);
 	grain_set_emitter_parameter(psystem, 0, "position", &(CF_V2){ 0.f, 0.f });
 	grain_set_emitter_parameter(psystem, 0, "min_speed", &(float){ 10.f });
 	grain_set_emitter_parameter(psystem, 0, "max_speed", &(float){ 50.f });
-	grain_set_emitter_parameter(psystem, 0, "min_angle", &(float){ -CF_PI / 2.f });
-	grain_set_emitter_parameter(psystem, 0, "max_angle", &(float){  CF_PI / 2.f });
+	grain_set_emitter_parameter(psystem, 0, "min_angle", &(float){ -CF_PI });
+	grain_set_emitter_parameter(psystem, 0, "max_angle", &(float){  CF_PI });
 	grain_set_emitter_parameter(psystem, 1, "min_lifetime", &(float){ 10.f });
 	grain_set_emitter_parameter(psystem, 1, "max_lifetime", &(float){ 20.f });
 
 	grain_set_affector_parameter(psystem, 1, "gravity", &(float){ 9.8f });
 
-	grain_set_renderer_parameter(psystem, "size", &(CF_V2){ 30.f, 30.f });
+	grain_set_renderer_parameter(psystem, "size", &(CF_V2){ 3.f, 3.f });
 	CF_Pixel blue = cf_color_to_pixel(cf_color_blue());
 	grain_set_renderer_parameter(psystem, "color", &blue.val);
 
