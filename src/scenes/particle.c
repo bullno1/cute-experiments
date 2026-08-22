@@ -124,7 +124,7 @@ init(void) {
 		"#if GRAIN_SHADER_STAGE == GRAIN_SHADER_STAGE_VERTEX\n"
 		"void process(ParticleAttrs particle, ModuleParams params, Ctx ctx) {\n"
 		"	if (particle.lifetime > 0.0) {\n"
-		"		gl_Position = vec4(particle.position + quad() * params.size, 0.0, 1.1);\n"
+		"		gl_Position = vec4(particle.position + quad() * params.size, 0.0, 1.0);\n"
 		"	} else {\n"
 		"		cull();\n"
 		"	}\n"
@@ -195,7 +195,7 @@ fixed_update(void* userdata) {
 	grain_set_emitter_parameter(psystem, 1, "min_lifetime", &(float){ 10.f });
 	grain_set_emitter_parameter(psystem, 1, "max_lifetime", &(float){ 20.f });
 
-	grain_set_affector_parameter(psystem, 0, "gravity", &(float){ 9.8f });
+	grain_set_affector_parameter(psystem, 1, "gravity", &(float){ 9.8f });
 
 	grain_set_renderer_parameter(psystem, "size", &(CF_V2){ 30.f, 30.f });
 	CF_Pixel blue = cf_color_to_pixel(cf_color_blue());
@@ -211,11 +211,12 @@ update(void) {
 	cf_app_update(fixed_update);
 	common();
 
+	cf_apply_canvas(cf_app_get_canvas(), true);
 	grain_begin_render(grain);
 	grain_render(psystem);
 	grain_end_render(grain);
 
-	cf_app_draw_onto_screen(true);
+	cf_app_draw_onto_screen(false);
 }
 
 SCENE {
