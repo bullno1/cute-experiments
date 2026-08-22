@@ -124,7 +124,7 @@ init(void) {
 		"#if GRAIN_SHADER_STAGE == GRAIN_SHADER_STAGE_VERTEX\n"
 		"void process(ParticleAttrs particle, ModuleParams params, Ctx ctx) {\n"
 		"	if (particle.lifetime > 0.0) {\n"
-		"		gl_Position = vec4(particle.position + quad() * params.size, 0.0, 1.0);\n"
+		"		gl_Position = grain_transform * vec4(particle.position + quad() * params.size, 0.0, 1.0);\n"
 		"	} else {\n"
 		"		cull();\n"
 		"	}\n"
