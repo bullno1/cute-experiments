@@ -1,10 +1,13 @@
 # cute-experiments
 
+[![License](https://img.shields.io/badge/license-UNLICENSED-blue.svg)](LICENSE)
+[![Build status](https://github.com/bullno1/cute-experiments/actions/workflows/build.yml/badge.svg)](https://github.com/bullno1/cute-experiments/actions/workflows/build.yml)
+
 Random experiments with [Cute Framework](github.com/RandyGaul/cute_framework).
 
 # Building
 
-`./boostrap`
+`./boostrap` to setup the project
 
 ## Linux
 
@@ -22,6 +25,13 @@ cmd/web/watch
 cmd/web/run
 ```
 
+## Windows
+
+```
+cmd/win/prepare.bat
+cmd/win/build.bat
+```
+
 # Demos
 ## dungeon
 
@@ -36,3 +46,7 @@ Space will toggle the tile in front between wall and floor.
 Z moves the placeholder enemy in front of the camera.
 
 Holding left shift shows the minimap.
+
+## particle
+
+GPU driven particle system with a GLSL-based DSL
