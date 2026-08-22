@@ -29,7 +29,7 @@ init(void) {
 		"	float min_angle;\n"
 		"	float max_angle;\n"
 		")\n"
-		"void process(out Particle particle, ModuleParams params, Ctx ctx) {\n"
+		"void process(out ParticleAttrs particle, ModuleParams params, Ctx ctx) {\n"
 		"	particle.position = params.position;\n"
 		"	float speed = mix(params.min_speed, params.max_speed, rand());\n"
 		"	float angle = mix(params.min_angle, params.max_angle, rand());\n"
@@ -50,7 +50,7 @@ init(void) {
 		"	float min_lifetime;\n"
 		"	float max_lifetime;\n"
 		")\n"
-		"void process(out Particle particle, ModuleParams params, Ctx ctx) {\n"
+		"void process(out ParticleAttrs particle, ModuleParams params, Ctx ctx) {\n"
 		"	particle.lifetime = mix(params.min_lifetime, params.max_lifetime, rand());\n"
 		"}"
 	);
@@ -66,11 +66,45 @@ init(void) {
 		")\n"
 		"Params(\n"
 		")\n"
-		"void process(inout Particle particle, ModuleParams params, Ctx ctx) {\n"
+		"void process(inout ParticleAttrs particle, ModuleParams params, Ctx ctx) {\n"
 		"	particle.lifetime -= ctx.dt;\n"
 		"}"
 	);
 	if (age_affector == NULL) {
+		BLOG_ERROR("%s", grain_get_last_error(grain));
+	}
+
+	grain_affector_t* integrate_affector = grain_define_affector(
+		grain,
+		"Module(Integrate)\n"
+		"Requires(\n"
+		"	vec2 position;\n"
+		"	vec2 velocity;\n"
+		")\n"
+		"Params(\n"
+		")\n"
+		"void process(inout ParticleAttrs particle, ModuleParams params, Ctx ctx) {\n"
+		"	particle.position += particle.velocity * ctx.dt;\n"
+		"}"
+	);
+	if (integrate_affector == NULL) {
+		BLOG_ERROR("%s", grain_get_last_error(grain));
+	}
+
+	grain_affector_t* gravity_affector = grain_define_affector(
+		grain,
+		"Module(Gravity)\n"
+		"Requires(\n"
+		"	vec2 velocity;\n"
+		")\n"
+		"Params(\n"
+		"	float gravity;\n"
+		")\n"
+		"void process(inout ParticleAttrs particle, ModuleParams params, Ctx ctx) {\n"
+		"	particle.velocity.y -= params.gravity * ctx.dt;\n"
+		"}"
+	);
+	if (gravity_affector == NULL) {
 		BLOG_ERROR("%s", grain_get_last_error(grain));
 	}
 
@@ -79,17 +113,20 @@ init(void) {
 		"Module(Quad)\n"
 		"Requires(\n"
 		"	vec2 position;\n"
+		"	float lifetime;\n"
 		")\n"
 		"Params(\n"
 		"	vec2 size;\n"
 		"	uint color;\n"
 		")\n"
 		"#if GRAIN_SHADER_STAGE == GRAIN_SHADER_STAGE_VERTEX\n"
-		"void process(in Particle particle, ModuleParams params, Ctx ctx) {\n"
+		"void process(ParticleAttrs particle, ModuleParams params, Ctx ctx) {\n"
 		"	gl_Position.xy = particle.position + quad() * params.size;\n"
+		"	gl_Position.z = 0.0;\n"
+		"	gl_Position.w = particle.lifetime > 0.0 ? 1.0 : 0.0;\n"
 		"}\n"
 		"#elif GRAIN_SHADER_STAGE == GRAIN_SHADER_STAGE_FRAGMENT\n"
-		"void process(inout Particle particle, ModuleParams params, Ctx ctx) {\n"
+		"void process(ParticleAttrs particle, ModuleParams params, Ctx ctx) {\n"
 		"	grain_Color = unpackUnorm4x8(params.color);\n"
 		"}\n"
 		"#endif"
@@ -108,8 +145,12 @@ init(void) {
 			},
 			.num_emitters = 2,
 
-			.affectors = &age_affector,
-			.num_affectors = 1,
+			.affectors = (grain_affector_t*[]){
+				age_affector,
+				gravity_affector,
+				integrate_affector,
+			},
+			.num_affectors = 3,
 
 			.renderer = renderer,
 		}
