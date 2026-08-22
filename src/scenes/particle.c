@@ -6,6 +6,8 @@
 #include <grain.h>
 
 SCENE_VAR(grain_t*, grain)
+SCENE_VAR(grain_pool_t*, pool)
+SCENE_VAR(grain_system_t*, psystem)
 
 static void
 init(void) {
@@ -160,21 +162,58 @@ init(void) {
 	if (archetype == NULL) {
 		BLOG_ERROR("%s", grain_get_last_error(grain));
 	}
+
+	if (pool == NULL) {
+		pool = grain_create_pool(grain, (grain_pool_opts_t){
+			.archetype = archetype,
+			.max_systems = 16,
+			.max_particles_per_system = 4096
+		});
+	}
+
+	if (psystem == NULL) {
+		psystem = grain_create_system(pool);
+	}
 }
 
 static void
 cleanup(void) {
+	grain_destroy_pool(pool);  // All systems are destroyed
 	grain_destroy(grain);
 }
 
 static void
 fixed_update(void* userdata) {
+	grain_begin_update(grain);
+
+	grain_set_emission_rate(psystem, 10.f);
+	grain_set_emitter_parameter(psystem, 0, "position", &(CF_V2){ 0.f, 0.f });
+	grain_set_emitter_parameter(psystem, 0, "min_speed", &(float){ 10.f });
+	grain_set_emitter_parameter(psystem, 0, "max_speed", &(float){ 50.f });
+	grain_set_emitter_parameter(psystem, 0, "min_angle", &(float){ -CF_PI / 2.f });
+	grain_set_emitter_parameter(psystem, 0, "max_angle", &(float){  CF_PI / 2.f });
+	grain_set_emitter_parameter(psystem, 1, "min_lifetime", &(float){ 10.f });
+	grain_set_emitter_parameter(psystem, 1, "max_lifetime", &(float){ 20.f });
+
+	grain_set_affector_parameter(psystem, 0, "gravity", &(float){ 9.8f });
+
+	grain_set_renderer_parameter(psystem, "size", &(CF_V2){ 30.f, 30.f });
+	CF_Pixel blue = cf_color_to_pixel(cf_color_blue());
+	grain_set_renderer_parameter(psystem, "color", &blue.val);
+
+	grain_tick(psystem, CF_DELTA_TIME_FIXED);
+
+	grain_end_update(grain);
 }
 
 static void
 update(void) {
 	cf_app_update(fixed_update);
 	common();
+
+	grain_begin_render(grain);
+	grain_render(psystem);
+	grain_end_render(grain);
 
 	cf_app_draw_onto_screen(true);
 }
