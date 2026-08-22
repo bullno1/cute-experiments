@@ -5,7 +5,7 @@
 #include <cute.h>
 #include <dcimgui.h>
 
-static bool debug_on = false;
+static bool debug_on = true;
 BGAME_PERSIST_VAR_EX(common, debug_on)
 
 void
