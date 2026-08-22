@@ -132,6 +132,7 @@ init(void) {
 		"#elif GRAIN_SHADER_STAGE == GRAIN_SHADER_STAGE_FRAGMENT\n"
 		"void process(ParticleAttrs particle, ModuleParams params, Ctx ctx) {\n"
 		"	grain_Color = unpackUnorm4x8(params.color);\n"
+		"	grain_Color.a = clamp(particle.lifetime, 0.0, 1.0);\n"
 		"}\n"
 		"#endif"
 	);
@@ -190,16 +191,16 @@ static void
 fixed_update(void* userdata) {
 	grain_begin_update(grain);
 
-	grain_set_emission_rate(psystem, 100.f);
+	grain_set_emission_rate(psystem, 200.f);
 	grain_set_emitter_parameter(psystem, 0, "position", &(CF_V2){ 0.f, 0.f });
-	grain_set_emitter_parameter(psystem, 0, "min_speed", &(float){ 10.f });
-	grain_set_emitter_parameter(psystem, 0, "max_speed", &(float){ 50.f });
-	grain_set_emitter_parameter(psystem, 0, "min_angle", &(float){ -CF_PI });
-	grain_set_emitter_parameter(psystem, 0, "max_angle", &(float){  CF_PI });
-	grain_set_emitter_parameter(psystem, 1, "min_lifetime", &(float){ 10.f });
-	grain_set_emitter_parameter(psystem, 1, "max_lifetime", &(float){ 20.f });
+	grain_set_emitter_parameter(psystem, 0, "min_speed", &(float){ 100.f });
+	grain_set_emitter_parameter(psystem, 0, "max_speed", &(float){ 150.f });
+	grain_set_emitter_parameter(psystem, 0, "min_angle", &(float){ CF_PI * 0.25f });
+	grain_set_emitter_parameter(psystem, 0, "max_angle", &(float){ CF_PI * 0.75f });
+	grain_set_emitter_parameter(psystem, 1, "min_lifetime", &(float){ 5.f });
+	grain_set_emitter_parameter(psystem, 1, "max_lifetime", &(float){ 10.f });
 
-	grain_set_affector_parameter(psystem, 1, "gravity", &(float){ 9.8f });
+	grain_set_affector_parameter(psystem, 1, "gravity", &(float){ 30.8f });
 
 	grain_set_renderer_parameter(psystem, "size", &(CF_V2){ 3.f, 3.f });
 	CF_Pixel blue = cf_color_to_pixel(cf_color_blue());
