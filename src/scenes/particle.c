@@ -189,6 +189,13 @@ cleanup(void) {
 
 static void
 fixed_update(void* userdata) {
+}
+
+static void
+update(void) {
+	cf_app_update(fixed_update);
+	common();
+
 	grain_begin_update(grain);
 
 	grain_set_emission_rate(psystem, 200.f);
@@ -206,15 +213,9 @@ fixed_update(void* userdata) {
 	CF_Pixel blue = cf_color_to_pixel(cf_color_blue());
 	grain_set_renderer_parameter(psystem, "color", &blue.val);
 
-	grain_tick(psystem, CF_DELTA_TIME_FIXED);
+	grain_tick(psystem, CF_DELTA_TIME);
 
 	grain_end_update(grain);
-}
-
-static void
-update(void) {
-	cf_app_update(fixed_update);
-	common();
 
 	cf_apply_canvas(cf_app_get_canvas(), true);
 	grain_begin_render(grain);
