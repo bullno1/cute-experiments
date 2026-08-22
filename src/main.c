@@ -66,7 +66,15 @@ init(int argc, const char** argv) {
 			abort();
 		}
 
-		handle_resize();
+#ifdef __EMSCRIPTEN__
+		// SDL's Emscripten backend adopts the CSS-driven canvas size at creation
+		// but never emits SDL_EVENT_WINDOW_RESIZED for it, so CF's cached
+		// app->w/h would stay at the requested size. Push the real size back
+		// through cf_app_set_size to synthesize that event.
+		int window_width, window_height;
+		SDL_GetWindowSize(cf_app_get_window(), &window_width, &window_height);
+		cf_app_set_size(window_width, window_height);
+#endif
 
 		result = cf_fs_mount("./assets", "/assets", true);
 		if (result.code != CF_RESULT_SUCCESS) {
